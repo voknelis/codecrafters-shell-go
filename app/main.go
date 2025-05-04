@@ -4,7 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+)
+
+const (
+	COMMAND_EXIT = "exit"
 )
 
 func main() {
@@ -21,6 +26,23 @@ func main() {
 		}
 
 		command = strings.TrimSpace(command)
+
+		if strings.HasPrefix(command, COMMAND_EXIT) {
+			splits := strings.SplitN(command, " ", 2)
+
+			exitCode := 0
+
+			if len(splits) == 2 {
+				code, err := strconv.Atoi(splits[1])
+				if err == nil {
+					exitCode = code
+				}
+			}
+
+			os.Exit(exitCode)
+			return
+		}
+
 		fmt.Println(command + ": command not found")
 	}
 }
