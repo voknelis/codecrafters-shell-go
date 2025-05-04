@@ -4,12 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
-)
 
-const (
-	COMMAND_EXIT = "exit"
+	"github.com/codecrafters-io/shell-starter-go/app/command"
 )
 
 func main() {
@@ -18,31 +15,24 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		// Wait for user input
-		command, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 			return
 		}
 
-		command = strings.TrimSpace(command)
-
-		if strings.HasPrefix(command, COMMAND_EXIT) {
-			splits := strings.SplitN(command, " ", 2)
-
-			exitCode := 0
-
-			if len(splits) == 2 {
-				code, err := strconv.Atoi(splits[1])
-				if err == nil {
-					exitCode = code
-				}
-			}
-
-			os.Exit(exitCode)
-			return
+		input = strings.TrimSpace(input)
+		if input == "" {
+			continue
 		}
 
-		fmt.Println(command + ": command not found")
+		command, err := command.NewCommand(input)
+		if err != nil {
+			fmt.Println(input + ": command not found")
+			continue
+		}
+
+		command.Exec()
 	}
 }
