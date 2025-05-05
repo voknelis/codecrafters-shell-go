@@ -11,17 +11,14 @@ const COMMAND_PWD = "pwd"
 // current working directory
 var cwd string
 
+func init() {
+	cwd, _ = os.Getwd()
+}
+
 type Pwd struct{}
 
 func (Pwd) Exec() {
-	var path string
-	if cwd != "" {
-		path = cwd
-	} else {
-		path, _ = os.Getwd()
-	}
-
-	fmt.Println(path)
+	fmt.Println(cwd)
 }
 
 func NewPwd() Pwd {
