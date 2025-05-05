@@ -85,6 +85,11 @@ func NewCommand(input string) (Command, error) {
 	case strings.HasPrefix(command, COMMAND_TYPE):
 		return NewType(rawArgs), nil
 	default:
+		cmd, err := NewExternalCommand(command, args)
+		if err == nil {
+			return cmd, nil
+		}
+
 		return nil, ErrUnknownCommand
 	}
 }
