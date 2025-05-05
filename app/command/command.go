@@ -19,6 +19,7 @@ var builtinCommands = []string{
 	COMMAND_EXIT,
 	COMMAND_ECHO,
 	COMMAND_TYPE,
+	COMMAND_PWD,
 }
 
 func IsBuiltinCommand(command string) bool {
@@ -84,6 +85,8 @@ func NewCommand(input string) (Command, error) {
 		return NewEcho(rawArgs), nil
 	case strings.HasPrefix(command, COMMAND_TYPE):
 		return NewType(rawArgs), nil
+	case strings.HasPrefix(command, COMMAND_PWD):
+		return NewPwd(), nil
 	default:
 		cmd, err := NewExternalCommand(command, args)
 		if err == nil {
