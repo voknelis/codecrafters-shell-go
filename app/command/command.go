@@ -2,6 +2,9 @@ package command
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 )
@@ -20,6 +23,36 @@ var builtinCommands = []string{
 
 func IsBuiltinCommand(command string) bool {
 	return slices.Contains(builtinCommands, command)
+}
+
+func IsExecutableCommand(command string) (string, bool) {
+	pathEnv := os.Getenv("PATH")
+	paths := strings.Split(pathEnv, string(os.PathListSeparator))
+
+	extensions := []string{""}
+	// On Windows, check PATHEXT for valid extensions
+	if runtime.GOOS == "windows" {
+		pathext := os.Getenv("PATHEXT")
+		if pathext != "" {
+			extensions = strings.Split(strings.ToLower(pathext), ";")
+		}
+	}
+
+	for _, dir := range paths {
+		for _, ext := range extensions {
+			cmdPath := filepath.Join(dir, command)
+			if ext != "" {
+				cmdPath += ext
+			}
+
+			info, err := os.Stat(cmdPath)
+			if err == nil && !info.IsDir() {
+				return cmdPath, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func NewCommand(input string) (Command, error) {

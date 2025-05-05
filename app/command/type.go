@@ -1,6 +1,8 @@
 package command
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const COMMAND_TYPE = "type"
 
@@ -15,6 +17,8 @@ func (t Type) Exec() {
 
 	if IsBuiltinCommand(t.command) {
 		fmt.Println(t.command, "is a shell builtin")
+	} else if cmdPath, ok := IsExecutableCommand(t.command); ok {
+		fmt.Println(t.command, "is", cmdPath)
 	} else {
 		fmt.Println(t.command + ": not found")
 	}
