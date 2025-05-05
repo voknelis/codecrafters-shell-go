@@ -32,6 +32,8 @@ func NewCommand(input string) (Command, error) {
 	switch {
 	case strings.HasPrefix(command, COMMAND_EXIT):
 		return NewExitWithArgs(args), nil
+	case strings.HasPrefix(command, COMMAND_ECHO):
+		return NewEchoWithArgs(args), nil
 	default:
 		return nil, ErrUnknownCommand
 	}
