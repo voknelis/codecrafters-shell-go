@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var COMMAND_CD = "cd"
@@ -14,10 +15,25 @@ type CD struct {
 
 func (c CD) Exec() {
 	path := c.path
-	isAbs := filepath.IsAbs(path)
+	// user directory is default directory
+	if path == "" {
+		path = "~"
+	}
 
+	isAbs := filepath.IsAbs(path)
 	if !isAbs {
-		path = filepath.Join(cwd, path)
+		// handle home directory path
+		if strings.HasPrefix(path, "~") {
+			userHomeDir, _ := os.UserHomeDir()
+
+			if path == "~" {
+				path = userHomeDir
+			} else {
+				path = strings.Replace(path, "~", userHomeDir, 1)
+			}
+		} else { // other relative path
+			path = filepath.Join(cwd, path)
+		}
 	}
 
 	info, err := os.Stat(path)
