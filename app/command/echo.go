@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"strings"
 )
 
 const COMMAND_ECHO = "echo"
@@ -16,4 +17,9 @@ func (e Echo) Exec() {
 
 func NewEcho(s string) Echo {
 	return Echo{s}
+}
+
+func NewEchoWitArgs(args []string) Echo {
+	s := strings.Join(args, " ")
+	return NewEcho(s)
 }

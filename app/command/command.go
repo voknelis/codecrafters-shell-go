@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/codecrafters-io/shell-starter-go/app/tokenizer"
 )
 
 type Command interface {
@@ -69,21 +71,13 @@ func NewCommand(input string) (Command, error) {
 		rawArgs = commandAndArgs[1]
 	}
 
-	args := make([]string, 0)
-	argsParts := strings.Split(rawArgs, " ")
-
-	for _, part := range argsParts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			args = append(args, trimmed)
-		}
-	}
+	args := tokenizer.Tokenize(rawArgs)
 
 	switch {
 	case strings.HasPrefix(command, COMMAND_EXIT):
 		return NewExitWithArgs(args), nil
 	case strings.HasPrefix(command, COMMAND_ECHO):
-		return NewEcho(rawArgs), nil
+		return NewEchoWitArgs(args), nil
 	case strings.HasPrefix(command, COMMAND_TYPE):
 		return NewType(rawArgs), nil
 	case strings.HasPrefix(command, COMMAND_PWD):
