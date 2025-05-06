@@ -8,56 +8,124 @@ import (
 )
 
 func TestTokenize(t *testing.T) {
-	t.Run("Empty arguments", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("")
-		assert.Equal(t, tokens, []string{})
+	t.Run("Simple arguments", func(t *testing.T) {
+		t.Run("Empty arguments", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("")
+			assert.Equal(t, []string{}, tokens)
+		})
+
+		t.Run("Single argument", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("arg1")
+			assert.Equal(t, []string{"arg1"}, tokens)
+		})
+
+		t.Run("Multiple arguments", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("arg1 arg2 arg3")
+			assert.Equal(t, []string{"arg1", "arg2", "arg3"}, tokens)
+		})
+
+		t.Run("Multiple spaces between arguments", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("arg1  arg2   arg3")
+			assert.Equal(t, []string{"arg1", "arg2", "arg3"}, tokens)
+		})
 	})
 
-	t.Run("Single argument", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("arg1")
-		assert.Equal(t, tokens, []string{"arg1"})
+	t.Run("Single quotes", func(t *testing.T) {
+		t.Run("Argument with single quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("'arg1'")
+			assert.Equal(t, []string{"arg1"}, tokens)
+		})
+
+		t.Run("Multiple arguments with single quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("'arg1' 'arg 2' 'arg 3 4'")
+			assert.Equal(t, []string{"arg1", "arg 2", "arg 3 4"}, tokens)
+		})
+
+		t.Run("Unclosed single quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("'arg1")
+			assert.Equal(t, []string{"arg1"}, tokens)
+
+			tokens = tokenizer.Tokenize("arg1'")
+			assert.Equal(t, []string{"arg1"}, tokens)
+		})
+
+		t.Run("Non-breaking single quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("arg1''arg2")
+			assert.Equal(t, []string{"arg1arg2"}, tokens)
+		})
+
+		t.Run("Preserve empty spaces inside single quotes", func(t *testing.T) {
+			tokens := tokenizer.Tokenize("'arg1   arg 2'")
+			assert.Equal(t, []string{"arg1   arg 2"}, tokens)
+		})
 	})
 
-	t.Run("Multiple arguments", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("arg1 arg2 arg3")
-		assert.Equal(t, tokens, []string{"arg1", "arg2", "arg3"})
-	})
+	t.Run("Double quotes", func(t *testing.T) {
+		t.Run("Argument with double quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize(`"arg1"`)
+			assert.Equal(t, []string{"arg1"}, tokens)
+		})
 
-	t.Run("Multiple spaces between arguments", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("arg1  arg2   arg3")
-		assert.Equal(t, tokens, []string{"arg1", "arg2", "arg3"})
-	})
+		t.Run("Escaped charachers", func(t *testing.T) {
+			// preserve single quote
+			tokens := tokenizer.Tokenize(`"arg1'"`)
+			assert.Equal(t, []string{"arg1'"}, tokens)
 
-	t.Run("Single argument with quote", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("'arg1'")
-		assert.Equal(t, tokens, []string{"arg1"})
-	})
+			// preserve single backslash
+			tokens = tokenizer.Tokenize(`"arg1\arg2"`)
+			assert.Equal(t, []string{"arg1\\arg2"}, tokens)
 
-	t.Run("Multiple arguments with quote", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("'arg1' 'arg 2' 'arg 3 4'")
-		assert.Equal(t, tokens, []string{"arg1", "arg 2", "arg 3 4"})
-	})
+			// single quote inside double quote cannot be escaped
+			tokens = tokenizer.Tokenize(`"arg1\'"`)
+			assert.Equal(t, []string{`arg1\'`}, tokens)
 
-	t.Run("Unclosed quote", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("'arg1")
-		assert.Equal(t, tokens, []string{"arg1"})
+			// escape double quote
+			tokens = tokenizer.Tokenize(`"arg1\""`)
+			assert.Equal(t, []string{"arg1\""}, tokens)
 
-		tokens = tokenizer.Tokenize("arg1'")
-		assert.Equal(t, tokens, []string{"arg1"})
-	})
+			// escape backslash
+			tokens = tokenizer.Tokenize(`"arg1\\"`)
+			assert.Equal(t, []string{"arg1\\"}, tokens)
 
-	t.Run("Non-breaking quote", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("arg1''arg2")
-		assert.Equal(t, tokens, []string{"arg1arg2"})
+			// escape dollar sign
+			tokens = tokenizer.Tokenize(`"arg1\$"`)
+			assert.Equal(t, []string{"arg1$"}, tokens)
+
+			// escape backtick symbol
+			tokens = tokenizer.Tokenize("\"arg1`\"")
+			assert.Equal(t, []string{"arg1`"}, tokens)
+
+			// escape new line
+			tokens = tokenizer.Tokenize("\"arg1\n\"")
+			assert.Equal(t, []string{"arg1\n"}, tokens)
+		})
+
+		t.Run("Multiple arguments with double quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize(`"arg1" "arg 2" "arg \3" "arg \\"`)
+			assert.Equal(t, []string{"arg1", "arg 2", "arg \\3", "arg \\"}, tokens)
+		})
+
+		t.Run("Unclosed double quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize(`"arg1`)
+			assert.Equal(t, []string{"arg1"}, tokens)
+
+			tokens = tokenizer.Tokenize(`arg1"`)
+			assert.Equal(t, []string{"arg1"}, tokens)
+		})
+
+		t.Run("Non-breaking double quote", func(t *testing.T) {
+			tokens := tokenizer.Tokenize(`arg1""arg2`)
+			assert.Equal(t, []string{"arg1arg2"}, tokens)
+		})
+
+		t.Run("Preserve empty spaces inside dougle quotes", func(t *testing.T) {
+			tokens := tokenizer.Tokenize(`"arg1   arg 2"`)
+			assert.Equal(t, []string{"arg1   arg 2"}, tokens)
+		})
 	})
 
 	t.Run("Multiple mixed arguments", func(t *testing.T) {
 		tokens := tokenizer.Tokenize("arg1 arg 2 'arg 3 4'")
-		assert.Equal(t, tokens, []string{"arg1", "arg", "2", "arg 3 4"})
-	})
-
-	t.Run("Preserve empty spaces inside quotes", func(t *testing.T) {
-		tokens := tokenizer.Tokenize("'arg1   arg 2'")
-		assert.Equal(t, tokens, []string{"arg1   arg 2"})
+		assert.Equal(t, []string{"arg1", "arg", "2", "arg 3 4"}, tokens)
 	})
 }
