@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"strings"
 )
 
 const COMMAND_TYPE = "type"
@@ -26,4 +27,15 @@ func (t Type) Exec() {
 
 func NewType(command string) Type {
 	return Type{command}
+}
+
+func NewTypeWithArgs(args []string) Type {
+	arg := strings.Join(args, " ")
+	return NewType(arg)
+}
+
+func init() {
+	RegisterCommand(COMMAND_TYPE, func(args []string) Command {
+		return NewTypeWithArgs(args)
+	})
 }

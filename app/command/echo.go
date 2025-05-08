@@ -19,7 +19,13 @@ func NewEcho(s string) Echo {
 	return Echo{s}
 }
 
-func NewEchoWitArgs(args []string) Echo {
-	s := strings.Join(args, " ")
-	return NewEcho(s)
+func NewEchoWithArgs(args []string) Echo {
+	arg := strings.Join(args, " ")
+	return NewEcho(arg)
+}
+
+func init() {
+	RegisterCommand(COMMAND_ECHO, func(args []string) Command {
+		return NewEchoWithArgs(args)
+	})
 }

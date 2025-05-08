@@ -5,28 +5,28 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/codecrafters-io/shell-starter-go/app/tokenizer"
 )
 
+var ErrUnknownCommand = errors.New("unknown command")
+
 type Command interface {
 	Exec()
 }
 
-var ErrUnknownCommand = errors.New("unknown command")
+type CommandHandler func(args []string) Command
 
-var builtinCommands = []string{
-	COMMAND_EXIT,
-	COMMAND_ECHO,
-	COMMAND_TYPE,
-	COMMAND_PWD,
-	COMMAND_CD,
+var commandRegistry = map[string]CommandHandler{}
+
+func RegisterCommand(name string, handler CommandHandler) {
+	commandRegistry[name] = handler
 }
 
 func IsBuiltinCommand(command string) bool {
-	return slices.Contains(builtinCommands, command)
+	_, exists := commandRegistry[command]
+	return exists
 }
 
 func IsExecutableCommand(command string) (string, bool) {
@@ -67,27 +67,16 @@ func NewCommand(input string) (Command, error) {
 
 	command := commandAndArgs[0]
 	args := commandAndArgs[1:]
-	rawArgs := strings.Join(args, " ")
 
-	switch {
-	case strings.HasPrefix(command, COMMAND_EXIT):
-		return NewExitWithArgs(args), nil
-	case strings.HasPrefix(command, COMMAND_ECHO):
-		return NewEchoWitArgs(args), nil
-	case strings.HasPrefix(command, COMMAND_TYPE):
-		return NewType(rawArgs), nil
-	case strings.HasPrefix(command, COMMAND_PWD):
-		return NewPwd(), nil
-	case strings.HasPrefix(command, COMMAND_PWD):
-		return NewPwd(), nil
-	case strings.HasPrefix(command, COMMAND_CD):
-		return NewCD(rawArgs), nil
-	default:
-		cmd, err := NewExternalCommand(command, args)
-		if err == nil {
-			return cmd, nil
-		}
-
-		return nil, ErrUnknownCommand
+	commandHandler, exists := commandRegistry[command]
+	if exists {
+		return commandHandler(args), nil
 	}
+
+	externalCommand, err := NewExternalCommand(command, args)
+	if err == nil {
+		return externalCommand, nil
+	}
+
+	return nil, ErrUnknownCommand
 }

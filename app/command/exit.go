@@ -33,3 +33,9 @@ func NewExitWithArgs(args []string) Exit {
 
 	return NewExit(code)
 }
+
+func init() {
+	RegisterCommand(COMMAND_EXIT, func(args []string) Command {
+		return NewExitWithArgs(args)
+	})
+}

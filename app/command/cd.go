@@ -52,3 +52,14 @@ func (c CD) Exec() {
 func NewCD(path string) CD {
 	return CD{path}
 }
+
+func NewCDWithArgs(args []string) CD {
+	arg := strings.Join(args, " ")
+	return NewCD(arg)
+}
+
+func init() {
+	RegisterCommand(COMMAND_CD, func(args []string) Command {
+		return NewCDWithArgs(args)
+	})
+}

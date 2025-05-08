@@ -24,3 +24,9 @@ func (Pwd) Exec() {
 func NewPwd() Pwd {
 	return Pwd{}
 }
+
+func init() {
+	RegisterCommand(COMMAND_PWD, func(args []string) Command {
+		return NewPwd()
+	})
+}
