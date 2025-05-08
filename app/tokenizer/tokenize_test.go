@@ -99,6 +99,10 @@ func TestTokenize(t *testing.T) {
 			tokens = tokenizer.Tokenize(`"arg1\""`)
 			assert.Equal(t, []string{"arg1\""}, tokens)
 
+			// escape double quote and preserve following single quote
+			tokens = tokenizer.Tokenize(`"arg1\"arg2'arg3"`)
+			assert.Equal(t, []string{`arg1"arg2'arg3`}, tokens)
+
 			// escape backslash
 			tokens = tokenizer.Tokenize(`"arg1\\"`)
 			assert.Equal(t, []string{"arg1\\"}, tokens)

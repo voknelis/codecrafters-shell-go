@@ -36,8 +36,9 @@ func Tokenize(input string) []string {
 				if isBackslash {
 					isBackslash = false
 					currentToken.WriteRune(char)
+				} else {
+					inDoubleQuote = !inDoubleQuote
 				}
-				inDoubleQuote = !inDoubleQuote
 			}
 		case '\\':
 			if inDoubleQuote {
