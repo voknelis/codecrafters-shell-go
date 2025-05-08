@@ -60,18 +60,14 @@ func IsExecutableCommand(command string) (string, bool) {
 }
 
 func NewCommand(input string) (Command, error) {
-	commandAndArgs := strings.SplitN(input, " ", 2)
+	commandAndArgs := tokenizer.Tokenize(input)
 	if len(commandAndArgs) == 0 {
 		return nil, ErrUnknownCommand
 	}
 
-	command := strings.TrimSpace(commandAndArgs[0])
-	rawArgs := ""
-	if len(commandAndArgs) > 1 {
-		rawArgs = commandAndArgs[1]
-	}
-
-	args := tokenizer.Tokenize(rawArgs)
+	command := commandAndArgs[0]
+	args := commandAndArgs[1:]
+	rawArgs := strings.Join(args, " ")
 
 	switch {
 	case strings.HasPrefix(command, COMMAND_EXIT):
