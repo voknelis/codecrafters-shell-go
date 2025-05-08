@@ -23,6 +23,9 @@ func Tokenize(input string) []string {
 					currentToken.WriteRune('\\')
 				}
 				currentToken.WriteRune(char)
+			} else if isBackslash && !inSingleQuote && !inDoubleQuote {
+				currentToken.WriteRune(char)
+				isBackslash = false
 			} else {
 				inSingleQuote = !inSingleQuote
 			}
@@ -44,15 +47,29 @@ func Tokenize(input string) []string {
 				} else {
 					isBackslash = true
 				}
+			} else if inSingleQuote {
+				// supposed to throw error, but for not just write it
+				currentToken.WriteRune(char)
+			} else if !inSingleQuote && !inDoubleQuote {
+				isBackslash = true
 			} else {
 				currentToken.WriteRune(char)
 			}
 		case ' ':
-			if inSingleQuote || inDoubleQuote {
+			if isBackslash && !inDoubleQuote {
+				currentToken.WriteRune(char)
+			} else if inSingleQuote || inDoubleQuote {
+				if isBackslash {
+					currentToken.WriteRune('\\')
+				}
 				currentToken.WriteRune(char)
 			} else if currentToken.Len() > 0 {
 				tokens = append(tokens, currentToken.String())
 				currentToken.Reset()
+			}
+
+			if isBackslash {
+				isBackslash = false
 			}
 		default:
 			if inDoubleQuote && isBackslash && !slices.Contains(backslashEscapedCharacters, char) {
