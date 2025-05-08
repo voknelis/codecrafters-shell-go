@@ -7,6 +7,25 @@ import (
 
 var backslashEscapedCharacters = []rune{'\\', '$', '"', '`', '\n'}
 
+// Shell Quoting Modes and Escape Behavior explained
+//
+// inside single quote:
+// - no escaping is performed at all
+// - every character between the single quotes is literal
+// - you cannot escape anything inside single quotes — not even another single quote
+//   except to include a single quote, you have to end the quote, escape it, and reopen:
+//   'It'\''s fine' -> It's fine
+//
+// inside double quote
+// - backslash (\) only escapes these four characters: $, `, ", \
+// 	 "Hello \$USER" -> Hello $USER
+//   "Hello \"World\"" -> Hello "World"
+//   "Slash: \\" -> Slash: \
+//
+// unquoted (bare words):
+// - the backslash (\) escapes the next character.
+// - prevents special characters from being interpreted (like space, *, $, etc.).
+
 func Tokenize(input string) []string {
 	tokens := make([]string, 0)
 	currentToken := strings.Builder{}
