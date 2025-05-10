@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"os/exec"
@@ -16,11 +17,22 @@ type External struct {
 func (e External) Exec(stdout, stderr Writer) error {
 	cmd := exec.Command(e.command, e.args...)
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
+
+	var outBuf bytes.Buffer
+	var errBuf bytes.Buffer
+
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
 
 	cmd.Run()
-	return nil
+
+	_, err := stdout.Write(outBuf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	_, err = stderr.Write(errBuf.Bytes())
+	return err
 }
 
 func NewExternalCommand(command string, args []string) (*External, error) {
