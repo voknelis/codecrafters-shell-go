@@ -13,6 +13,11 @@ type Echo struct {
 
 func (e Echo) Exec(stdout, stderr Writer) error {
 	_, err := fmt.Fprintln(stdout, e.s)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprint(stderr, "")
 	return err
 }
 

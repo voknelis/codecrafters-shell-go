@@ -9,16 +9,13 @@ type RedirectStd struct {
 }
 
 func (r *RedirectStd) Write(p []byte) (n int, err error) {
-	f, err := os.OpenFile(r.target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	f, err := os.OpenFile(r.target, os.O_RDWR|os.O_CREATE|os.O_SYNC, os.ModePerm)
 	if err != nil {
 		return 0, err
 	}
+	defer f.Close()
 
 	n, err = f.Write(p)
-	if err1 := f.Close(); err1 != nil && err == nil {
-		err = err1
-	}
-
 	return n, err
 }
 
