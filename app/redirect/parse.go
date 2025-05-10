@@ -28,6 +28,8 @@ func ParseRedirection(operator string, target string) (*Redirection, error) {
 	switch operatorSuffix {
 	case string(RedirectionOutput):
 		redirection.Type = RedirectionOutput
+	case string(RedirectionOutputAppend):
+		redirection.Type = RedirectionOutputAppend
 	default:
 		return nil, fmt.Errorf("-shell: %s: Invalid redirect operator", operatorSuffix)
 	}

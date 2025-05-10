@@ -61,9 +61,9 @@ func executeCommand(input string) {
 	for _, r := range cmd.Redirection {
 		switch r.FileDescriptor {
 		case 1:
-			stdout = redirect.NewRedirectStd(r.Target)
+			stdout = redirect.NewRedirectStd(r.Target, r.Type == redirect.RedirectionOutputAppend)
 		case 2:
-			stderr = redirect.NewRedirectStd(r.Target)
+			stderr = redirect.NewRedirectStd(r.Target, r.Type == redirect.RedirectionOutputAppend)
 		}
 	}
 

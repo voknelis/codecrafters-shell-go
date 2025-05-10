@@ -7,7 +7,8 @@ import (
 type RedirectionType string
 
 const (
-	RedirectionOutput RedirectionType = ">"
+	RedirectionOutput       RedirectionType = ">"
+	RedirectionOutputAppend RedirectionType = ">>"
 )
 
 type Redirection struct {
