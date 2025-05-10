@@ -2,21 +2,31 @@ package command
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
+	"github.com/codecrafters-io/shell-starter-go/app/parser"
+	"github.com/codecrafters-io/shell-starter-go/app/redirect"
 	"github.com/codecrafters-io/shell-starter-go/app/tokenizer"
 )
 
 var ErrUnknownCommand = errors.New("unknown command")
 
-type Command interface {
-	Exec()
+type Writer = io.Writer
+
+type Command struct {
+	Executable  CommandExec
+	Redirection []redirect.Redirection
 }
 
-type CommandHandler func(args []string) Command
+type CommandExec interface {
+	Exec(stdout, stderr Writer) error
+}
+
+type CommandHandler func(args []string) CommandExec
 
 var commandRegistry = map[string]CommandHandler{}
 
@@ -59,23 +69,34 @@ func IsExecutableCommand(command string) (string, bool) {
 	return "", false
 }
 
-func NewCommand(input string) (Command, error) {
+func NewCommand(input string) (*Command, error) {
 	commandAndArgs := tokenizer.Tokenize(input)
 	if len(commandAndArgs) == 0 {
 		return nil, ErrUnknownCommand
 	}
 
-	command := commandAndArgs[0]
-	args := commandAndArgs[1:]
-
-	commandHandler, exists := commandRegistry[command]
-	if exists {
-		return commandHandler(args), nil
+	commandNode, err := parser.Parse(commandAndArgs)
+	if err != nil {
+		return nil, err
+	}
+	if commandNode.Executable == "" {
+		return nil, ErrUnknownCommand
 	}
 
-	externalCommand, err := NewExternalCommand(command, args)
+	command := &Command{
+		Redirection: commandNode.Redirection,
+	}
+
+	commandHandler, exists := commandRegistry[commandNode.Executable]
+	if exists {
+		command.Executable = commandHandler(commandNode.Arguments)
+		return command, nil
+	}
+
+	externalCommand, err := NewExternalCommand(commandNode.Executable, commandNode.Arguments)
 	if err == nil {
-		return externalCommand, nil
+		command.Executable = externalCommand
+		return command, nil
 	}
 
 	return nil, ErrUnknownCommand

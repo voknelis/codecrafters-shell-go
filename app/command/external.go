@@ -13,13 +13,14 @@ type External struct {
 	args    []string
 }
 
-func (e External) Exec() {
+func (e External) Exec(stdout, stderr Writer) error {
 	cmd := exec.Command(e.command, e.args...)
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	cmd.Run()
+	return nil
 }
 
 func NewExternalCommand(command string, args []string) (*External, error) {

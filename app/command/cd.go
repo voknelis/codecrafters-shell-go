@@ -13,7 +13,7 @@ type CD struct {
 	path string
 }
 
-func (c CD) Exec() {
+func (c CD) Exec(stdout, stderr Writer) error {
 	path := c.path
 	// user directory is default directory
 	if path == "" {
@@ -38,15 +38,26 @@ func (c CD) Exec() {
 
 	info, err := os.Stat(path)
 	if err != nil {
-		fmt.Printf("cd: %s: No such file or directory\n", path)
-		return
+		_, err := fmt.Fprintf(stderr, "cd: %s: No such file or directory\n", path)
+		return err
 	}
 
 	if info.IsDir() {
+		err := os.Chdir(path)
+		if err != nil {
+			_, err := fmt.Fprintf(stderr, "cd: failed to change directory: %s\n", err)
+			return err
+		}
+
 		cwd = path
 	} else {
-		fmt.Printf("cd: %s: Not a directory\n", path)
+		_, err := fmt.Fprintf(stderr, "cd: %s: Not a directory\n", path)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func NewCD(path string) CD {
@@ -59,7 +70,7 @@ func NewCDWithArgs(args []string) CD {
 }
 
 func init() {
-	RegisterCommand(COMMAND_CD, func(args []string) Command {
+	RegisterCommand(COMMAND_CD, func(args []string) CommandExec {
 		return NewCDWithArgs(args)
 	})
 }

@@ -11,8 +11,9 @@ type Exit struct {
 	code int
 }
 
-func (e Exit) Exec() {
+func (e Exit) Exec(stdout, stderr Writer) error {
 	os.Exit(e.code)
+	return nil
 }
 
 func NewExit(code int) Exit {
@@ -35,7 +36,7 @@ func NewExitWithArgs(args []string) Exit {
 }
 
 func init() {
-	RegisterCommand(COMMAND_EXIT, func(args []string) Command {
+	RegisterCommand(COMMAND_EXIT, func(args []string) CommandExec {
 		return NewExitWithArgs(args)
 	})
 }

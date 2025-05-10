@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/codecrafters-io/shell-starter-go/app/command"
+	"github.com/codecrafters-io/shell-starter-go/app/redirect"
 )
 
 func main() {
@@ -43,13 +44,33 @@ func main() {
 }
 
 func executeCommand(input string) {
-	command, err := command.NewCommand(input)
+	cmd, err := command.NewCommand(input)
 	if err != nil {
-		fmt.Println(input + ": command not found")
+		if errors.Is(err, command.ErrUnknownCommand) {
+			fmt.Println(input + ": command not found")
+			return
+		}
+
+		fmt.Println(err)
 		return
 	}
 
-	command.Exec()
+	var stdout command.Writer = os.Stdout
+	var stderr command.Writer = os.Stderr
+
+	for _, r := range cmd.Redirection {
+		switch r.FileDescriptor {
+		case 1:
+			stdout = redirect.NewRedirectStd(r.Target)
+		case 2:
+			stderr = redirect.NewRedirectStd(r.Target)
+		}
+	}
+
+	err = cmd.Executable.Exec(stdout, stderr)
+	if err != nil {
+		fmt.Println("-shell:", err)
+	}
 }
 
 func handleSysCall() {

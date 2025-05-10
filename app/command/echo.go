@@ -11,8 +11,9 @@ type Echo struct {
 	s string
 }
 
-func (e Echo) Exec() {
-	fmt.Println(e.s)
+func (e Echo) Exec(stdout, stderr Writer) error {
+	_, err := fmt.Fprintln(stdout, e.s)
+	return err
 }
 
 func NewEcho(s string) Echo {
@@ -25,7 +26,7 @@ func NewEchoWithArgs(args []string) Echo {
 }
 
 func init() {
-	RegisterCommand(COMMAND_ECHO, func(args []string) Command {
+	RegisterCommand(COMMAND_ECHO, func(args []string) CommandExec {
 		return NewEchoWithArgs(args)
 	})
 }

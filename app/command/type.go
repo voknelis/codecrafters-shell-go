@@ -11,17 +11,20 @@ type Type struct {
 	command string
 }
 
-func (t Type) Exec() {
+func (t Type) Exec(stdout, stderr Writer) error {
 	if t.command == "" {
-		return
+		return nil
 	}
 
 	if IsBuiltinCommand(t.command) {
-		fmt.Println(t.command, "is a shell builtin")
+		_, err := fmt.Fprintln(stdout, t.command, "is a shell builtin")
+		return err
 	} else if cmdPath, ok := IsExecutableCommand(t.command); ok {
-		fmt.Println(t.command, "is", cmdPath)
+		_, err := fmt.Fprintln(stdout, t.command, "is", cmdPath)
+		return err
 	} else {
-		fmt.Println(t.command + ": not found")
+		_, err := fmt.Fprintln(stderr, t.command+": not found")
+		return err
 	}
 }
 
@@ -35,7 +38,7 @@ func NewTypeWithArgs(args []string) Type {
 }
 
 func init() {
-	RegisterCommand(COMMAND_TYPE, func(args []string) Command {
+	RegisterCommand(COMMAND_TYPE, func(args []string) CommandExec {
 		return NewTypeWithArgs(args)
 	})
 }

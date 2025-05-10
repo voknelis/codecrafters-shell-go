@@ -17,8 +17,9 @@ func init() {
 
 type Pwd struct{}
 
-func (Pwd) Exec() {
-	fmt.Println(cwd)
+func (Pwd) Exec(stdout, stderr Writer) error {
+	_, err := fmt.Fprintln(stdout, cwd)
+	return err
 }
 
 func NewPwd() Pwd {
@@ -26,7 +27,7 @@ func NewPwd() Pwd {
 }
 
 func init() {
-	RegisterCommand(COMMAND_PWD, func(args []string) Command {
+	RegisterCommand(COMMAND_PWD, func(args []string) CommandExec {
 		return NewPwd()
 	})
 }
